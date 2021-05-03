@@ -51,7 +51,7 @@ class WelcomeServlet() extends ScalatraServlet {
     val otpInRequest = params("otp")
     val currentTime: Long = System.currentTimeMillis()
     val otpDetailsInDB: Option[OTPRequest] = map.get(email)
-    otpDetailsInDB.fold(Unauthorized("OTP Verification Request for inValid Email")) { otpDb => getOTPResponse(currentTime, otpDb, otpInRequest) }
+    otpDetailsInDB.fold(Unauthorized("OTP Verification Request for inValid Email")) { otpDb => getOTPResponse(currentTime, otpDb, otpInRequest, email) }
   }
 
   def getOTPValue: String = {
@@ -60,8 +60,12 @@ class WelcomeServlet() extends ScalatraServlet {
     f"${Math.abs(number)}%10.0f".replace(" ", "0")
   }
 
-  def getOTPResponse(currentTimeInMillis: Long, otpDb: OTPRequest, otpInRequest: String): ActionResult = {
+  def getOTPResponse(currentTimeInMillis: Long, otpDb: OTPRequest, otpInRequest: String, email:String): ActionResult = {
+
     if (!isOtpsMatching(otpDb, otpInRequest)) {
+      BadRequest("OTP is not matching")
+    } else if(otpDb.usedOtps.contains(otpInRequest)) {
+      map.update(email, otpDb.copy(usedOtps = otpDb.usedOtps + otpInRequest))
       BadRequest("OTP is not matching")
     } else if (!lastOtpRequestWithinExpiryThreshold(currentTimeInMillis, otpDb)) {
       Forbidden("OTP Expired")

@@ -3,7 +3,7 @@ package otp
 import scala.concurrent.duration._
 import java.time.temporal.ChronoUnit
 
-case class OTPRequest(requestedAtMillis: List[Long], otp: String)
+case class OTPRequest(requestedAtMillis: List[Long], otp: String, usedOtps: Set[String] = Set.empty)
 
 object OTPRequest {
   val default = OTPRequest(List(), "")
